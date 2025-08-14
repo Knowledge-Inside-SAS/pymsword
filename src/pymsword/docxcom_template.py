@@ -1,4 +1,5 @@
 # coding=utf-8
+import os.path
 import sys
 from typing import Dict, Any, Callable
 from pymsword.xml_template import XMLFragment, XMLRunner
@@ -47,13 +48,19 @@ class DocxComTemplate(DocxTemplate):
             return prepared
         return walk_data(data), placeholder2inserter
 
-    def generate(self, data, output):
+    def generate(self, data:Dict[str, Any], output:str, postprocess=None):
+        """Generate the DOCX file from the template and data.
+        Additional COM-based post-processing can be done.
+        :param data: Data to fill the template. A dictionary with string keys and values can be strings, lists, or inserter functions
+        :param output: Output file path for the generated DOCX
+        :param postprocess: Optional post-processing function that takes the opened Word document as an argument.
+        """
         prepared_data, inserters = self.prepare_data(data)
         DocxTemplate.generate(self, prepared_data, output)
-        if inserters:
-            self._run_inserters(output, inserters)
+        if inserters or postprocess:
+            self._run_inserters(output, inserters, postprocess)
 
-    def _run_inserters(self, docx_file, placeholder2inserter): #type: (str, Dict[str, Callable])->None
+    def _run_inserters(self, docx_file, placeholder2inserter, postprocess):
         """Run inserters in the DOCX file"""
         # Initialize the Word Application
         import pythoncom
@@ -110,19 +117,24 @@ class DocxComTemplate(DocxTemplate):
             # Open the DOCX file
             word.DisplayAlerts = 0
             word.ScreenUpdating = False
-            doc = word.Documents.Open(docx_file)
+            doc = word.Documents.Open(os.path.abspath(docx_file)) #need to take absolute path, because Word might have different idea about the current folder
             # Search for the marker string
-            #find_and_process_marders(lambda : doc.Range())
             # Search for the marker string in headers and footers
-            for section in doc.Sections:
-                find_and_process_markers(lambda : section.Range)
-                for header in section.Headers:
-                    find_and_process_markers(lambda : header.Range)
-                for footer in section.Footers:
-                    find_and_process_markers(lambda : footer.Range)
+            if placeholder2inserter:
+                for section in doc.Sections:
+                    find_and_process_markers(lambda : section.Range)
+                    for header in section.Headers:
+                        find_and_process_markers(lambda : header.Range)
+                    for footer in section.Footers:
+                        find_and_process_markers(lambda : footer.Range)
+            if postprocess is not None:
+                postprocess(doc)
+
         finally:
             word.ScreenUpdating = True
             if doc is not None:
                 doc.Close(SaveChanges=True)
             # Quit Word
             word.Quit()
+
+
