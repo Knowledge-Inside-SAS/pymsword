@@ -27,16 +27,20 @@ def table_inserter(data:List[List[str]])->Callable[[object], object]:
     return inserter
 
 
-def _insert_document_inline(word_range, filename:str):
+def _insert_document_inline(word_range, filename:str, set_style=None):
     """Inserts content of the RTF file into specified range of document.
     After operation, range points after the inserted RTF."""
     word_range.Collapse()  # wdCollapseStart
     rngEnd = word_range.Duplicate
     rngEnd.InsertParagraph()
-    word_range.InsertFile(filename, ConfirmConversions=False)
+    word_range.InsertFile(os.path.abspath(filename), ConfirmConversions=False)
+    if set_style is not None:
+        # Set the style of the inserted content
+        word_range.Style = word_range.Document.Styles(set_style)
     rngEnd.Characters.Last.Delete()
     rngEnd.Characters.Last.Delete()
     word_range.SetRange(rngEnd.Start, rngEnd.End)
+
     word_range.Collapse(0)  # wdCollapseEnd
 
     return word_range
@@ -45,7 +49,7 @@ def _insert_picture_inline(insert_range, filename):
     """Inserts picture from file <filename> into specified range of document.
     After operation, range points after the inserted picture.
     Function returns a new Word.InlineShape object."""
-    pic = insert_range.InlineShapes.AddPicture (filename)
+    pic = insert_range.InlineShapes.AddPicture (os.path.abspath(filename))
     if not pic:
         raise ValueError("AddPicture returned None, check the file path")
     pic_range = pic.Range
@@ -60,11 +64,11 @@ def image_inserter(picture_path:str)->Callable[[object], object]:
         _insert_picture_inline(word_range, picture_path)
     return insert
 
-def document_inserter(rtf_path:str)->Callable[[object], object]:
+def document_inserter(rtf_path:str, set_style=None)->Callable[[object], object]:
     """Returns a function that inserts RTF content into the document at the specified range."""
     def insert(word_range):
         if not os.path.exists(rtf_path): raise ValueError("RTF file was not found")
-        _insert_document_inline(word_range, rtf_path)
+        _insert_document_inline(word_range, rtf_path, set_style = set_style)
     return insert
 
 
