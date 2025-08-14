@@ -63,7 +63,6 @@ class DocxComTemplate(DocxTemplate):
     def _run_inserters(self, docx_file, placeholder2inserter, postprocess):
         """Run inserters in the DOCX file"""
         # Initialize the Word Application
-        import pythoncom
         import win32com.client
         word = win32com.client.Dispatch("Word.Application")
         doc = None
