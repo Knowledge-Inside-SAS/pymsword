@@ -120,6 +120,27 @@ The template and the resulting document are shown below:
 | `anchor_inserter(text:str, anchor:str)` | Inserts an anchor with the given text and name.                                           |
 | `heading_inserter(text:str, level:int=1)` | Inserts a heading with the given text and level. Level 1 is the highest level.             |
 
+### COM Post-Processing
+
+WHen generating documents using COM-assisted mode (`DocxComTemplate`), you can use post-processing to modify the document after it has been generated.
+To do this, specify the `postprocess` argument when calling the `DocxComTemplate.generate` method.
+Library `pymsword.com_utilities` provides an example post-processing function that updates document creation date and table of content:
+
+```python
+from pymsword.docxcom_template import DocxComTemplate
+from pymsword.com_utilities import update_document_toc
+
+template = DocxComTemplate("template.docx")
+data = ...
+template.generate(
+    data,
+    "output.docx",
+    postprocess=update_document_toc
+)
+```
+
+Post-processing function must take single argument which is the Word.Document object.
+
 ## Requirements
 - Python 3.7 or higher
 - `pywin32` package for COM automation
