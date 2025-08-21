@@ -130,7 +130,7 @@ def main():
 
         diagram_file = os.path.join(source_dir, funcname + ".svg")
         if os.path.exists(diagram_file):
-            func['diagram'] = image_inserter(diagram_file)
+            func['diagram'] = image_inserter(diagram_file, max_height=380)
 
 
     template.generate(data, "LAPTOP functional specification result.docx",

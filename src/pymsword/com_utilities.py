@@ -45,23 +45,55 @@ def _insert_document_inline(word_range, filename:str, set_style=None):
 
     return word_range
 
-def _insert_picture_inline(insert_range, filename):
-    """Inserts picture from file <filename> into specified range of document.
+
+def _insert_picture_inline(insert_range, filename, max_width=None, max_height=None):
+    """
+    Inserts picture from file <filename> into specified range of document.
     After operation, range points after the inserted picture.
-    Function returns a new Word.InlineShape object."""
-    pic = insert_range.InlineShapes.AddPicture (os.path.abspath(filename))
+
+    Args:
+        insert_range: Word Range object where the image should be inserted.
+        filename: Path to the image file.
+        max_width: Maximum width (points) for the image (optional).
+        max_height: Maximum height (points) for the image (optional).
+
+    Returns:
+        Word.InlineShape object representing the inserted picture.
+    """
+    # Ensure full path
+    abs_filename = os.path.abspath(filename)
+
+    # Insert picture
+    pic = insert_range.InlineShapes.AddPicture(abs_filename, False, True)
     if not pic:
         raise ValueError("AddPicture returned None, check the file path")
+
+    # Resize if limits provided
+    if max_width or max_height:
+        # Lock aspect ratio
+        pic.LockAspectRatio = True
+        orig_width, orig_height = pic.Width, pic.Height
+
+        # Scale factors
+        scale_w = max_width / orig_width if max_width else 1.0
+        scale_h = max_height / orig_height if max_height else 1.0
+        scale = min(scale_w, scale_h, 1.0)  # don’t upscale
+
+        pic.Width = int(orig_width * scale)
+        pic.Height = int(orig_height * scale)
+
+    # Update range to point after inserted picture
     pic_range = pic.Range
     insert_range.SetRange(pic_range.Start, pic_range.End)
-    insert_range.Collapse(0) #wdCollapseEnd
+    insert_range.Collapse(0)  # wdCollapseEnd
+
     return pic
 
-def image_inserter(picture_path:str)->Callable[[object], object]:
+def image_inserter(picture_path:str, max_width=None, max_height=0)->Callable[[object], object]:
     """Returns a function that inserts an image into the document at the specified range."""
     def insert(word_range):
         if not os.path.exists(picture_path): raise ValueError("Image file was not found")
-        _insert_picture_inline(word_range, picture_path)
+        _insert_picture_inline(word_range, picture_path, max_width=max_width, max_height=max_height)
     return insert
 
 def document_inserter(rtf_path:str, set_style=None)->Callable[[object], object]:
