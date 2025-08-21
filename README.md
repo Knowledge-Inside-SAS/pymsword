@@ -112,13 +112,13 @@ The template and the resulting document are shown below:
 ![COM Template and result](/doc/template_com.png)
 
 ### Complete list of inserter functions, available in `pymsword.com_utilities` module:
-| Function                               | Description                                                                                  |
-|----------------------------------------|----------------------------------------------------------------------------------------------|
-| `table_inserter(data:List[List[str]])  | Inserts a table with the given data. Each sublist represents a row.                          |
-| `image_inserter(picture_path:str)`     | Inserts an image from the specified path using COM. Supports more formats than the DOCX mode |
-| `document_inserter(document_path:str)` | Inserts content of another document, can be DOCX, RTF or anything supported by Word.       |
-| `anchor_inserter(text:str, anchor:str)` | Inserts an anchor with the given text and name.                                           |
-| `heading_inserter(text:str, level:int=1)` | Inserts a heading with the given text and level. Level 1 is the highest level.             |
+| Function                                                           | Description                                                                                                              |
+|--------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| `table_inserter(data:List[List[str]])                              | Inserts a table with the given data. Each sublist represents a row.                                                      |
+| `image_inserter(picture_path:str, max_width=None, max_height=None)` | Inserts an image from the specified path using COM. Supports more formats than the DOCX mode. Maximal size is in points. |
+| `document_inserter(document_path:str)`                             | Inserts content of another document, can be DOCX, RTF or anything supported by Word.                                     |
+| `anchor_inserter(text:str, anchor:str)`                            | Inserts an anchor with the given text and name.                                                                          |
+| `heading_inserter(text:str, level:int=1)`                          | Inserts a heading with the given text and level. Level 1 is the highest level.                                           |
 
 ### COM Post-Processing
 
